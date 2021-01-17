@@ -23,12 +23,7 @@ public class File extends Node{
     }
 
     @Override
-    public List<Node> getChildren() {
-        throw new UnsupportedOperationException("");
-    }
+    public void removeChild(Node node) {
 
-    @Override
-    public boolean isdity() {
-        return false;
     }
 }

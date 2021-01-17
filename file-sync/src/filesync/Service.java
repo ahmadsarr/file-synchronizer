@@ -13,31 +13,10 @@ public class Service  implements Runnable{
     public Service(Node root,Synchronizer sync){
         this.root=root;
         this.synchronizer=sync;
-        Stack<Node> dirs=new Stack<>();
-        dirs.push(root);
-        Node current=null;
-        while (!dirs.isEmpty())
-        {
-            current=dirs.pop();
-            try {
-              List<Path> paths= Files.walk(current.getPath(),1).collect(Collectors.toList());
-                Path  p=null;
-              for(int i=1;i<paths.toArray().length;i++){
-                 p=paths.get(i);
-                 Node node=null;
-                 if(Files.isDirectory(p)){
-                     node=new Dir(current,p.toString());
-                     dirs.push(node);
-                 }else{
-                     node=new File(current,p.toString());
-                 }
-                 current.addchild(node);
-              }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        Utils.walk(this.root);
+
     }
+
     @Override
     public void run() {
         while (true){
@@ -46,10 +25,11 @@ public class Service  implements Runnable{
             piles.push(this.root);
             while (!piles.isEmpty()){
                 Node cur=piles.pop();
-                if(cur.isDir() &&cur.isdity())
+                if(cur.isdity())
                      this.synchronizer.notifies(cur.getActions());
                 for(Node n:cur.getChildren())
                     piles.push(n);
+               // System.out.println(cur.getPathStr());
             }
 
                 Thread.sleep(1000);

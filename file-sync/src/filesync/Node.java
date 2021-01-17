@@ -1,6 +1,5 @@
 package filesync;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.FileSystem;
@@ -8,16 +7,19 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public abstract class Node {
     protected Path path;
     protected String name;
     protected Node parent;
+
+    public BasicFileAttributes getAtrributes() {
+        return atrributes;
+    }
+
     protected BasicFileAttributes atrributes;
-    protected List<WatchEvent<?>>actions;
-    protected WatchService watchService;
-    protected WatchKey key;
+    protected ArrayList<Action>actions;
 
       public Node(Node parent,String name) {
 
@@ -31,16 +33,27 @@ public abstract class Node {
           {
               exception.printStackTrace();
           }
-          if(isDir())
-          try {
-              watchService= FileSystems.getDefault().newWatchService();
-              this.path.register(this.watchService,StandardWatchEventKinds.ENTRY_CREATE,
-                      StandardWatchEventKinds.ENTRY_DELETE,
-                      StandardWatchEventKinds.ENTRY_MODIFY);
-          } catch (IOException e) {
-              e.printStackTrace();
-          }
 
+      }
+      public Node child(String path){
+          List<Node> chdren=getChildren();
+          for(Node n:chdren)
+              if(n.getPathStr().equals(path))
+                  return n;
+          return null;
+      }
+      public abstract void removeChild(Node node);
+
+      public Node child(int inode){
+          List<Node> chdren=getChildren();
+          for(Node n:chdren)
+          {
+              String k=n.getAtrributes().fileKey().toString();
+              int key =Integer.parseInt(k.substring(k.indexOf("ino=")+4,k.lastIndexOf(")")));
+              if(key==inode)
+                  return n;
+          }
+          return null;
       }
 
     public abstract boolean isFile();
@@ -53,26 +66,58 @@ public abstract class Node {
     public  List<Node> getChildren(){
         return new ArrayList<Node>();
     }
-    public  boolean isdity() throws IOException, InterruptedException {
-        /*Path p=Paths.get(getPathStr());
-        BasicFileAttributes attr=Files.readAttributes(p,BasicFileAttributes.class);
-        boolean dirty=false;
+    public  boolean isdity() throws Exception {
+        this.actions.clear();
+        Path p=Paths.get(getPathStr());
         if(!Files.exists(p)) {
-            actions.add(new Action(getPathStr(), "deleted", System.currentTimeMillis()));
+            actions.add(new Action(getPathStr(), (isDir()?"DIR_":"FILE_")+"DELETED", System.currentTimeMillis()));
+            parent.removeChild(this);
+
+
             return true;
         }
-        return false;*/
-       key=this.watchService.poll(1000, TimeUnit.MILLISECONDS);
+        BasicFileAttributes attr=Files.readAttributes(p,BasicFileAttributes.class);
+        if(!attr.lastModifiedTime().equals(this.atrributes.lastModifiedTime())) {
+            if(isFile()) {
+                actions.add(new Action(getPathStr(), "FILE_UPDATE", System.currentTimeMillis()));
 
+            }else{
+              List<Path>l=Files.walk(path,1).collect(Collectors.toList());
+              if(l.size()>getChildren().size()) //child add to that dir
+              {
+                  for(int i=1;i<l.size();i++)
+                  {
+                      BasicFileAttributes att=Files.readAttributes(l.get(i),BasicFileAttributes.class);
+                      String k=att.fileKey().toString();
+                      int key =Integer.parseInt(k.substring(k.indexOf("ino=")+4,k.lastIndexOf(")")));
+                      Node n=child(key);
+                      if(n==null){//le fichier ajout
+                          n=(Files.isDirectory(l.get(i))?new Dir(this,l.get(i).toString()):
+                                  new File(this,l.get(i).toString()));
+                          addchild(n);
+                          actions.add(new Action(n.getPathStr(), "FILE_ADD", System.currentTimeMillis()));
+                      }else if(child(l.get(i).toString())==null){//le fichier a ete renommé
+                          actions.add(new Action(n.getPathStr(), "FILE_RENAME", System.currentTimeMillis()));
+                          n.rename(l.get(i).toString());
+                      }
+                  }
+              }else{//si un enfant a ete supprimé
+                  //nop
+              }
 
-       return key!=null;
+            }
+            this.atrributes=attr;
+        }
+
+        return actions.size()>0;
+
     }
     public String getPathStr(){
-        if(path==null)
+
             return name;
-        return parent.getPathStr()+""+ File.separator+""+name;
+        //return parent.getPathStr()+""+ File.separator+""+name;
     }
     public Path getPath(){return path;}
     public void addchild(Node e){}
-    public List<WatchEvent<?>> getActions(){ return key.pollEvents();}
+    public List<Action> getActions(){ return actions;}
 }

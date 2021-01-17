@@ -1,13 +1,11 @@
 package filesync;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
+
 import java.util.List;
-import java.util.stream.Collector;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 
 public class Dir extends  Node{
     List<Node> children;
@@ -15,7 +13,19 @@ public class Dir extends  Node{
         super(parent,name);
         children=new ArrayList<>();
     }
-    public void addchildren(Node e){
+
+    @Override
+    public void removeChild(Node n) {
+        children=children.stream().filter(new Predicate<Node>() {
+            @Override
+            public boolean test(Node node) {
+                return !node.getPathStr().equals(n.getPathStr());
+            }
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public void addchild(Node e){
         children.add(e);
     }
     @Override
