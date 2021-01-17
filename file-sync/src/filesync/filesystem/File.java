@@ -1,6 +1,4 @@
-package filesync;
-
-import java.util.List;
+package filesync.filesystem;
 
 public class File extends Node{
     public File(Node parent,String name) {

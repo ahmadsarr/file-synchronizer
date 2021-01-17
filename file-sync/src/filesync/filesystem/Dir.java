@@ -1,4 +1,4 @@
-package filesync;
+package filesync.filesystem;
 
 import java.util.ArrayList;
 

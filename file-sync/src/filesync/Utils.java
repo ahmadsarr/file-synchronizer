@@ -1,5 +1,9 @@
 package filesync;
 
+import filesync.filesystem.Dir;
+import filesync.filesystem.File;
+import filesync.filesystem.Node;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

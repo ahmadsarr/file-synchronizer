@@ -1,11 +1,11 @@
-package filesync;
+package filesync.filesystem;
 
-import java.io.IOException;
+import filesync.action.Action;
+import filesync.action.BaseAction;
+
 import java.nio.file.*;
-import java.nio.file.FileSystem;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,7 +70,7 @@ public abstract class Node {
         this.actions.clear();
         Path p=Paths.get(getPathStr());
         if(!Files.exists(p)) {
-            actions.add(new Action(getPathStr(), (isDir()?"DIR_":"FILE_")+"DELETED", System.currentTimeMillis()));
+            actions.add(new BaseAction(getPathStr(), (isDir()?"DIR_":"FILE_")+"DELETED", System.currentTimeMillis()));
             parent.removeChild(this);
 
 
@@ -79,7 +79,7 @@ public abstract class Node {
         BasicFileAttributes attr=Files.readAttributes(p,BasicFileAttributes.class);
         if(!attr.lastModifiedTime().equals(this.atrributes.lastModifiedTime())) {
             if(isFile()) {
-                actions.add(new Action(getPathStr(), "FILE_UPDATE", System.currentTimeMillis()));
+                actions.add(new BaseAction(getPathStr(), "FILE_UPDATE", System.currentTimeMillis()));
 
             }else{
               List<Path>l=Files.walk(path,1).collect(Collectors.toList());
@@ -95,9 +95,9 @@ public abstract class Node {
                           n=(Files.isDirectory(l.get(i))?new Dir(this,l.get(i).toString()):
                                   new File(this,l.get(i).toString()));
                           addchild(n);
-                          actions.add(new Action(n.getPathStr(), "FILE_ADD", System.currentTimeMillis()));
+                          actions.add(new BaseAction(n.getPathStr(), "FILE_ADD", System.currentTimeMillis()));
                       }else if(child(l.get(i).toString())==null){//le fichier a ete renommé
-                          actions.add(new Action(n.getPathStr(), "FILE_RENAME", System.currentTimeMillis()));
+                          actions.add(new BaseAction(n.getPathStr(), "FILE_RENAME", System.currentTimeMillis()));
                           n.rename(l.get(i).toString());
                       }
                   }

@@ -1,4 +1,8 @@
-package filesync;
+package filesync.filesystem;
+
+import filesync.Service;
+import filesync.Synchronizer;
+import filesync.action.Action;
 
 import java.io.File;
 import java.util.List;
@@ -7,6 +11,7 @@ public class LocalFileSystem implements FileSystem{
     protected Node root;
     protected Service service;
     protected Synchronizer synchronizer;
+
     public LocalFileSystem(String rootPath)
     {
         root=new Dir(null,rootPath);
@@ -15,6 +20,7 @@ public class LocalFileSystem implements FileSystem{
         this.service.run();
 
     }
+
     @Override
     public Node getRoot() {
         return root;
@@ -60,4 +66,8 @@ public class LocalFileSystem implements FileSystem{
 
     }
 
+    @Override
+    public List<Action> computerDirty() {
+        return getRoot().getActions();
+    }
 }

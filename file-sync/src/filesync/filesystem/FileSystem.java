@@ -1,5 +1,6 @@
-package filesync;
-import filesync.Node;
+package filesync.filesystem;
+import filesync.action.Action;
+
 import java.io.File;
 import java.util.List;
 
@@ -22,4 +23,5 @@ public interface FileSystem {
     public File createDirectory(String path);
 
     public void fileCopy(File input, File output) throws Exception;
+    public List<Action> computerDirty();
 }
