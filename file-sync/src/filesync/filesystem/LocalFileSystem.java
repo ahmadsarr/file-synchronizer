@@ -104,27 +104,45 @@ public class LocalFileSystem implements FileSystem{
         }
             return root.getActions();
     }
-
     @Override
     public void replace(String src, FileSystem fs, String dst) {
         System.out.println("replace:"+src+"->"+dst);
         Node node=   root.find(dst);
-        node.setName(Paths.get(src).getFileName().toString());
+        try {
+            node.replace(Paths.get(src).toFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+    @Override
+    public void remove(String path, FileSystem src) {
+        Node node=root.find(path);
+        System.out.println("remove:"+node.getPath().toString());
+        node.remove();
+    }
+    @Override
+    public void rename(String src, FileSystem Source, String target) {
+
+        System.out.println("rename:"+src+"->"+target);
+        Node node=root.find(src);
+        try {
+            node.rename(Paths.get(target).getFileName().toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void remove(String absolutePathTargetFS, FileSystem src) {
-        System.out.println("remove : "+absolutePathTargetFS);
-    }
-
-    @Override
-    public void rename(String absolutePathSourceFS, FileSystem Source, String absolutePathTargetFS) {
-
-        System.out.println("rename:"+absolutePathSourceFS+"->"+absolutePathTargetFS);
-    }
-
-    @Override
-    public void createFile(String absolutePathTargetFS) {
-        System.out.println("createFile:"+absolutePathTargetFS);
+    public void createFile(String p) {
+        System.out.println("createFile:"+p);
+        Path path=Paths.get(p);
+        String file=path.getFileName().toString();
+        Node node=root.find(path.toString().substring(0,p.length()-file.length()-1));
+        try {
+            node.createFile(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

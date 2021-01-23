@@ -57,6 +57,7 @@ public final class Utils {
                 java.lang.String relativepath=paths.get(i).toString().substring(len);
 
                 Path p= Paths.get(basePath+"/"+relativepath);
+               // System.out.println(p);
                 if(!Files.exists(p))
                 {
                     if(Files.isDirectory(p))
@@ -79,16 +80,16 @@ public final class Utils {
         Path p1 = Paths.get(src.getBase() + relativepath);
         switch (ac.getAction()) {
             case "DELETED":
-                dst.remove(p1.toString(), src);
+                dst.remove(relativepath, src);
                 break;
             case "RENAME":
-                dst.rename( p1.toString(),src,((RenameAction) ac).getNewFileName());
+                dst.rename(((RenameAction) ac).getFilename(),src,((RenameAction) ac).getNewFileName());
                 break;
             case "UPDATE":
                 dst.replace(p1.toString(),dst,relativepath);
                 break;
             case "ADD":
-                dst.createFile(dst.getBase()+relativepath);
+                dst.createFile(relativepath);
 
         }
     }

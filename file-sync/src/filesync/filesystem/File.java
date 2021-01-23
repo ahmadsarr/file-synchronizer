@@ -1,5 +1,8 @@
 package filesync.filesystem;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
 public class File extends Node {
     public File(Node parent, java.lang.String name, java.lang.String base) {
         super(parent,name,base);
@@ -24,4 +27,6 @@ public class File extends Node {
     public void removeChild(Node node) {
 
     }
+
+
 }

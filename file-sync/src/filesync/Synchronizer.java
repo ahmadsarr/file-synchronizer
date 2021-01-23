@@ -92,15 +92,16 @@ public class Synchronizer implements Runnable {
     @Override
     public void run() {
         while (true) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             //  List<String> dirtyA=this.fsA.computerDirty().stream().map(baseAction -> baseAction.getFilename()).sorted().collect(Collectors.toList());
             // List<String> dirtyB=this.fsB.computerDirty().stream().map(baseAction -> baseAction.getFilename()).sorted().collect(Collectors.toList());
             // reconcile1(dirtyA,dirtyB,"/fs");
             reconcile(this.fsA.computerDirty(), this.fsB.computerDirty(), "/fs");
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
         }
     }
 }

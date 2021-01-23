@@ -4,31 +4,30 @@ import filesync.filesystem.Node;
 
 import java.util.Stack;
 
-public class Service  implements Runnable{
+public class Service implements Runnable {
 
     protected Node root;
- //   protected LinkedList<BaseAction> dirties;
-    public Service(Node root){
-        this.root=root;
-    //    this.dirties = dirties;
+
+    public Service(Node root) {
+        this.root = root;
         Utils.walk(this.root);
 
     }
 
     @Override
     public void run() {
-        while (true){
+        while (true) {
 
             try {
                 Thread.sleep(6000);
-            Stack<Node>piles=new Stack<>();
-            piles.push(this.root);
-            while (!piles.isEmpty()){
-                Node cur=piles.pop();
-                 cur.computeDirty();
-                for(Node n:cur.getChildren())
-                    piles.push(n);
-            }
+                Stack<Node> piles = new Stack<>();
+                piles.push(this.root);
+                while (!piles.isEmpty()) {
+                    Node cur = piles.pop();
+                    cur.computeDirty();
+                    for (Node n : cur.getChildren())
+                        piles.push(n);
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
