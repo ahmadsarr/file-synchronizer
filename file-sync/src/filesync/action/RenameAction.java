@@ -2,17 +2,21 @@ package filesync.action;
 
 public class RenameAction extends BaseAction{
     public String  newFileName;
-    public RenameAction(String oldfilename,String newFileName, Long timestamp) {
-        super(oldfilename, "RENAME", timestamp);
+    public RenameAction(String oldfilename,String newFileName) {
+        super(oldfilename, "RENAME");
         this.newFileName=newFileName;
+    }
+
+    public String getNewFileName() {
+        return newFileName;
     }
 
     @Override
     public String toString() {
-        return "RenameAction{" +
+        return "{" +
                 "filename:'" + filename + '\'' +
                 ", action:'" + action + '\'' +
-                ", timestamp:" + timestamp +
+
                 ", newFileName:'" + newFileName + '\'' +
                 '}';
     }

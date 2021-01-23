@@ -1,8 +1,8 @@
 package filesync.filesystem;
 
-public class File extends Node{
-    public File(Node parent,String name) {
-        super(parent,name);
+public class File extends Node {
+    public File(Node parent, java.lang.String name, java.lang.String base) {
+        super(parent,name,base);
     }
 
     @Override
@@ -16,7 +16,7 @@ public class File extends Node{
     }
 
     @Override
-    public void update(String txt) {
+    public void update(java.lang.String txt) {
 
     }
 

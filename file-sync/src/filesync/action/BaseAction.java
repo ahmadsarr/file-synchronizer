@@ -1,6 +1,8 @@
 package filesync.action;
 
-public  class  BaseAction implements Action{
+import java.util.Objects;
+
+public  class  BaseAction implements Action,Comparable{
 
     public String getFilename() {
         return filename;
@@ -18,36 +20,54 @@ public  class  BaseAction implements Action{
         this.action = action;
     }
 
-    public Long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Long timestamp) {
-        this.timestamp = timestamp;
+    @Override
+    public int compareTo(Object o) {
+        BaseAction ba=(BaseAction) o;
+        return -this.getFilename().compareTo(ba.getFilename());
     }
 
     protected String filename;
     protected String action;
-    protected Long timestamp;
 
-    public BaseAction(String filename, String action, Long timestamp) {
+
+    public BaseAction(String filename, String action) {
         this.filename = filename;
         this.action = action;
-        this.timestamp = timestamp;
+;
+    }
+
+
+
+    @Override
+    protected Action clone() throws CloneNotSupportedException {
+        Action o = null;
+        try {
+
+            o = (Action) super.clone();
+        } catch(CloneNotSupportedException cnse) {
+            cnse.printStackTrace(System.err);
+        }
+        return o;
     }
 
     @Override
-    public int compareTo(Object o) {
-        BaseAction a=(BaseAction) o;
-        return (int)(this.timestamp-a.timestamp);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseAction that = (BaseAction) o;
+        return Objects.equals(filename, that.getFilename());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(filename);
     }
 
     @Override
     public String toString() {
-        return "Action{" +
+        return "{" +
                 "filename,'" + filename + '\'' +
                 ", action,'" + action + '\'' +
-                ", timestamp," + timestamp +
                 '}';
     }
 }

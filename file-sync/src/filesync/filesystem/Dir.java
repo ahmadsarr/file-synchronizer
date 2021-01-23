@@ -7,11 +7,12 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
-public class Dir extends  Node{
+public class Dir extends Node {
     List<Node> children;
-    public Dir(Node parent,String name) {
-        super(parent,name);
+    public Dir(Node parent, java.lang.String name, java.lang.String base) {
+        super(parent,name,base);
         children=new ArrayList<>();
+
     }
 
     @Override
@@ -19,7 +20,7 @@ public class Dir extends  Node{
         children=children.stream().filter(new Predicate<Node>() {
             @Override
             public boolean test(Node node) {
-                return !node.getPathStr().equals(n.getPathStr());
+                return !node.name.equals(n.getPathStr());
             }
         }).collect(Collectors.toList());
     }
@@ -39,8 +40,13 @@ public class Dir extends  Node{
     }
 
     @Override
-    public void update(String txt) {
+    public void update(java.lang.String txt) {
 
+    }
+
+    @Override
+    public void removesAll() {
+        children.clear();
     }
 
     @Override

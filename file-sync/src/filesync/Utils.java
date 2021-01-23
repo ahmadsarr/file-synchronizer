@@ -1,12 +1,14 @@
 package filesync;
 
-import filesync.filesystem.Dir;
-import filesync.filesystem.File;
+import filesync.action.BaseAction;
+import filesync.action.RenameAction;
+import filesync.filesystem.*;
 import filesync.filesystem.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ public final class Utils {
         while (!dirs.isEmpty())
         {
             current=dirs.pop();
+
             try {
                 List<Path> paths= Files.walk(current.getPath(),1).collect(Collectors.toList());
                 Path  p=null;
@@ -26,10 +29,10 @@ public final class Utils {
                     p=paths.get(i);
                     Node node=null;
                     if(Files.isDirectory(p)){
-                        node=new Dir(current,p.toString());
+                        node=new Dir(current,p.toString(), root.getBase());
                         dirs.push(node);
                     }else{
-                        node=new File(current,p.toString());
+                        node=new File(current,p.toString(), root.getBase());
                     }
                     current.addchild(node);
 
@@ -38,6 +41,55 @@ public final class Utils {
                 e.printStackTrace();
             }
         }
-        System.out.println(root.getChildren().size());
+     //   System.out.println(root.getChildren().size());
+    }
+
+    public static FileSystem clone(FileSystem localfs, java.lang.String base, java.lang.String root)
+    {
+        java.lang.String basePath=base+root+"/"+localfs.getRoot().getPath().getFileName().toString();
+
+        LocalFileSystem  remotefs=null;//=new LocalFileSystem(basePath,"/"+localfs.getRoot().getPath().getFileName().toString());
+
+        try {
+            List<Path> paths= Files.walk(localfs.getRoot().getPath()).collect(Collectors.toList());
+            int len=localfs.getRoot().getPath().toString().length();
+            for(int i=1;i<paths.size();i++) {
+                java.lang.String relativepath=paths.get(i).toString().substring(len);
+
+                Path p= Paths.get(basePath+"/"+relativepath);
+                if(!Files.exists(p))
+                {
+                    if(Files.isDirectory(p))
+                        localfs.createDirectory(p);
+                    else{
+                        localfs.fileCopy(paths.get(i).toFile(),p.toFile());
+                    }
+                }
+
+            }
+            remotefs=new LocalFileSystem(base+root,"/"+localfs.getRoot().getPath().getFileName().toString());
+
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return remotefs;
+    }
+    public static void update(BaseAction ac,FileSystem src,FileSystem dst,String relativepath)
+    {
+        Path p1 = Paths.get(src.getBase() + relativepath);
+        switch (ac.getAction()) {
+            case "DELETED":
+                dst.remove(p1.toString(), src);
+                break;
+            case "RENAME":
+                dst.rename( p1.toString(),src,((RenameAction) ac).getNewFileName());
+                break;
+            case "UPDATE":
+                dst.replace(p1.toString(),dst,relativepath);
+                break;
+            case "ADD":
+                dst.createFile(dst.getBase()+relativepath);
+
+        }
     }
 }

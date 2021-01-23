@@ -1,27 +1,32 @@
 package filesync.filesystem;
-import filesync.action.Action;
+import filesync.action.BaseAction;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 public interface FileSystem {
     public Node getRoot();
-    public Node getParent(String path);
+    public java.lang.String getBase();
+    public Node getParent(java.lang.String path);
 
-    public List<Node> getChildren(String path);
+    public List<String> getChildren(String path);
 
-    public List<Node> getAncestors(String path);
+    public List<String> getAncestors(String path);
 
-    public String getAbsolutePath(String relativePath);
+    public java.lang.String getAbsolutePath(java.lang.String relativePath);
 
-    public String getRelativePath(String absolutePath);
+    public java.lang.String getRelativePath(java.lang.String absolutePath);
 
-    //public void replace(String absolutePathTargetFS, FileSystemfs Source, String absolutePathSourceFS);
+    public void replace(String absolutePathTargetFS, FileSystem Source, String absolutePathSourceFS);
 
     public FileSystem getReference();
 
-    public File createDirectory(String path);
+    public File createDirectory(Path path);
+    public void remove(String absolutePathTargetFS,FileSystem src);
+    public void rename(String absolutePathTargetFS, FileSystem Source, String absolutePathSourceFS);
 
     public void fileCopy(File input, File output) throws Exception;
-    public List<Action> computerDirty();
+    public List<BaseAction> computerDirty();
+    public void createFile(String absolutePathTargetFS);
 }
