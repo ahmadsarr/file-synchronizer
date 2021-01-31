@@ -43,6 +43,18 @@ public final class Utils {
         }
      //   System.out.println(root.getChildren().size());
     }
+    public final static List<Path> walk(Path path){
+
+            try {
+             return Files.walk(path).collect(Collectors.toList());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        //   System.out.println(root.getChildren().size());
+
+    }
 
     public static FileSystem clone(FileSystem localfs, java.lang.String base, java.lang.String root)
     {
@@ -60,9 +72,11 @@ public final class Utils {
                // System.out.println(p);
                 if(!Files.exists(p))
                 {
-                    if(Files.isDirectory(p))
+                    if(Files.isDirectory(p) || p.toString().indexOf(".")<0) {
                         localfs.createDirectory(p);
-                    else{
+                    } else{
+                        System.out.println(p.toString());
+                        Files.createFile(p);
                         localfs.fileCopy(paths.get(i).toFile(),p.toFile());
                     }
                 }
@@ -74,6 +88,10 @@ public final class Utils {
             ex.printStackTrace();
         }
         return remotefs;
+    }
+    public static void undo(BaseAction ac,FileSystem src){
+        if(ac.getAction().equals("RENAME"))
+            src.rename( ac.getFilename(),src,((RenameAction) ac).getNewFileName());
     }
     public static void update(BaseAction ac,FileSystem src,FileSystem dst,String relativepath)
     {
@@ -90,6 +108,7 @@ public final class Utils {
                 break;
             case "ADD":
                 dst.createFile(relativepath);
+                break;
 
         }
     }

@@ -19,7 +19,7 @@ public class Service implements Runnable {
         while (true) {
 
             try {
-                Thread.sleep(6000);
+                Thread.sleep(1000);
                 Stack<Node> piles = new Stack<>();
                 piles.push(this.root);
                 while (!piles.isEmpty()) {

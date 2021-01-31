@@ -1,17 +1,16 @@
 package filesync.filesystem;
 
-import filesync.Service;
+
 import filesync.Utils;
 import filesync.action.BaseAction;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
+
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -83,9 +82,9 @@ public class LocalFileSystem implements FileSystem{
     }
     @Override
     public void fileCopy(File input, File output) throws Exception {
-       // output.mkdirs();
+        output.mkdirs();
         if(!output.exists())
-           Files.copy(input.toPath(),output.toPath());
+            Files.copy(input.toPath(),output.toPath());
     }
 
     @Override

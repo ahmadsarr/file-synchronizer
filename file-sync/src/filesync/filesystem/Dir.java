@@ -54,8 +54,4 @@ public class Dir extends Node {
         return children;
     }
 
-    @Override
-    public void remove() {
-
-    }
 }

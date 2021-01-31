@@ -1,5 +1,6 @@
 package filesync.filesystem;
 
+import filesync.Utils;
 import filesync.action.BaseAction;
 import filesync.action.RenameAction;
 
@@ -138,17 +139,32 @@ public abstract class Node {
     }
 
     public void remove() {
+        System.out.println(name);
         parent.removeChild(this);
         try {
-            Files.delete(this.getPath());
+            if(isDir())
+            {
+                List<Path> files= Utils.walk(getPath());
+                files=files==null?null:files.stream().sorted(Comparator.comparing(Path::toString).reversed()).collect(Collectors.toList());
+                for(Path f:files) {
+                    System.out.println(f.toString());
+                    Files.delete(f);
+                }
+            }else
+               Files.delete(this.getPath());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     public void createFile(String name) throws IOException {
         if(isDir()){
+            System.out.println(name);
             java.io.File file = Paths.get(getPathStr()+ "/" + name).toFile();
-            file.createNewFile();
+            if(name.indexOf(".")<0) {
+                file.mkdirs();
+                System.out.println(name);
+            }else
+                file.createNewFile();
             Node node=new File(this, file.getPath(),this.base);
             addchild(node);
         }
@@ -182,7 +198,7 @@ public abstract class Node {
             parent.removeChild(this);
             if (isDir())
                 removesAll();
-            //  System.out.println("DEL "+getPath().toString().substring(getBase().length()));
+            /*  System.out.println("DEL "+getPath().toString().substring(getBase().length()));
             List<Path> l = Files.walk(parent.getPath(), 1).collect(Collectors.toList());
             if (l.size() > getChildren().size()) //child add to that parent's dir
             {
@@ -199,7 +215,7 @@ public abstract class Node {
                         return;
                     }
                 }
-            }
+            }*/
             notif(new BaseAction(getPath().toString().substring(getBase().length()), "DELETED"));
             return;
         }

@@ -1,11 +1,9 @@
 package filesync;
 
-import filesync.action.Action;
+
 import filesync.action.BaseAction;
-import filesync.action.RenameAction;
 import filesync.filesystem.FileSystem;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,8 +53,10 @@ public class Synchronizer implements Runnable {
     }
 
     public void reconcile(List<BaseAction> dirtyA, List<BaseAction> dirtyB, String relativepath) {
+
         if (dirtyA.isEmpty() && dirtyB.isEmpty())
             return;
+        System.out.println(relativepath);
         List<BaseAction> a = dirtyA.stream().filter(baseAction -> baseAction.getFilename().equals(relativepath)).collect(Collectors.toList());
         List<BaseAction> b = dirtyB.stream().filter(baseAction -> baseAction.getFilename().equals(relativepath)).collect(Collectors.toList());
         if (a.isEmpty() && b.isEmpty()) {
@@ -78,7 +78,36 @@ public class Synchronizer implements Runnable {
             }
 
         } else if (!a.isEmpty() && !b.isEmpty()) {
-            System.out.println("collision");
+            System.out.println("Collision :"+relativepath);
+            boolean renameA=false;
+        for(BaseAction ba:a)
+        {
+            if(ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath))
+            {
+                Utils.update(ba,fsA,fsB,relativepath);
+                return;
+            }
+            if(ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath))
+            {
+                System.out.println("undo Rename : "+ba.getFilename());
+                Utils.undo(ba,fsA);
+            }
+
+        }
+            for(BaseAction ba:b)
+            {
+                if(ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath))
+                {
+                    Utils.update(ba,fsB,fsA,relativepath);
+                    return;
+                }
+                if(ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath))
+                {
+                    System.out.println("undo Rename : "+ba.getFilename());
+                    Utils.undo(ba,fsB);
+                }
+            }
+
         } else if (!a.isEmpty()) {
                 Utils.update(a.get(0),fsA,fsB,relativepath);
 
@@ -93,14 +122,11 @@ public class Synchronizer implements Runnable {
     public void run() {
         while (true) {
             try {
-                Thread.sleep(5000);
+                Thread.sleep(55000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //  List<String> dirtyA=this.fsA.computerDirty().stream().map(baseAction -> baseAction.getFilename()).sorted().collect(Collectors.toList());
-            // List<String> dirtyB=this.fsB.computerDirty().stream().map(baseAction -> baseAction.getFilename()).sorted().collect(Collectors.toList());
-            // reconcile1(dirtyA,dirtyB,"/fs");
-            reconcile(this.fsA.computerDirty(), this.fsB.computerDirty(), "/fs");
+            reconcile(this.fsA.computerDirty(), this.fsB.computerDirty(), "/dir1");
 
         }
     }
