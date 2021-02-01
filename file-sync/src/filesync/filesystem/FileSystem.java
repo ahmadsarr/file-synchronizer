@@ -22,7 +22,7 @@ public interface FileSystem {
 
     public FileSystem getReference();
 
-    public File createDirectory(Path path);
+    public File createDirectory(String path);
     public void remove(String absolutePathTargetFS,FileSystem src);
     public void rename(String absolutePathTargetFS, FileSystem Source, String absolutePathSourceFS);
 

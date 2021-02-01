@@ -61,7 +61,6 @@ public abstract class Node {
         while (b) {
 
             String file = node.getPath().getFileName().toString();
-
             if (file.equals(p))
                 return node;
             p = p.startsWith("/") ? p.substring(1) : p;
@@ -93,25 +92,24 @@ public abstract class Node {
 
     public void notif(List<BaseAction> actions) {
         if (parent != null) {
-            if (!isDirty)
-                actions.add(new BaseAction(getPathStr().substring(getBase().length()), "DIR_UPDATE"));
+            actions.add(new BaseAction(getPathStr().substring(getBase().length()), "DIR_UPDATE"));
             isDirty = true;
             parent.notif(actions);
         } else {
             this.actions.addAll(actions);
             this.actions.add(new BaseAction(getPathStr().substring(getBase().length()), "DIR_UPDATE"));
+            this.actions.stream().forEach(baseAction -> System.out.println(baseAction));
         }
 
     }
 
     public void notif(BaseAction a) {
+
         if (parent != null) {
             ArrayList<BaseAction> list = new ArrayList();
             list.add(a);
             parent.notif(list);
             isDirty = true;
-            System.out.println(a);
-
         } else {
             isDirty = true;
             actions.add(a);
@@ -139,7 +137,7 @@ public abstract class Node {
     }
 
     public void remove() {
-        System.out.println(name);
+
         parent.removeChild(this);
         try {
             if(isDir())
@@ -147,7 +145,7 @@ public abstract class Node {
                 List<Path> files= Utils.walk(getPath());
                 files=files==null?null:files.stream().sorted(Comparator.comparing(Path::toString).reversed()).collect(Collectors.toList());
                 for(Path f:files) {
-                    System.out.println(f.toString());
+
                     Files.delete(f);
                 }
             }else
@@ -157,17 +155,17 @@ public abstract class Node {
         }
     }
     public void createFile(String name) throws IOException {
-        if(isDir()){
-            System.out.println(name);
             java.io.File file = Paths.get(getPathStr()+ "/" + name).toFile();
+            Node node=null;
             if(name.indexOf(".")<0) {
                 file.mkdirs();
-                System.out.println(name);
-            }else
+                node = new Dir(this, file.getPath(), this.base);
+            }else {
                 file.createNewFile();
-            Node node=new File(this, file.getPath(),this.base);
+                node = new File(this, file.getPath(), this.base);
+            }
             addchild(node);
-        }
+
     }
 
     public void replace(java.io.File source) throws IOException {
@@ -197,25 +195,7 @@ public abstract class Node {
 
             parent.removeChild(this);
             if (isDir())
-                removesAll();
-            /*  System.out.println("DEL "+getPath().toString().substring(getBase().length()));
-            List<Path> l = Files.walk(parent.getPath(), 1).collect(Collectors.toList());
-            if (l.size() > getChildren().size()) //child add to that parent's dir
-            {
-                for (int i = 1; i < l.size(); i++) {
-                    BasicFileAttributes att = Files.readAttributes(l.get(i), BasicFileAttributes.class);
-                    java.lang.String k = att.fileKey().toString();
-                    int key = Integer.parseInt(k.substring(k.indexOf("ino=") + 4, k.lastIndexOf(")")));
 
-                    if (key == getInod()) {
-                        String newfile = l.get(i).toString().substring(getBase().length());
-                        String oldfile = getPathStr().substring(getBase().length());
-                        notif(new RenameAction(oldfile, newfile));
-                        ;
-                        return;
-                    }
-                }
-            }*/
             notif(new BaseAction(getPath().toString().substring(getBase().length()), "DELETED"));
             return;
         }
@@ -229,14 +209,16 @@ public abstract class Node {
                 if (l.size() > getChildren().size()) //child add to that dir
                 {
                     for (int i = 1; i < l.size(); i++) {
-                        BasicFileAttributes att = Files.readAttributes(l.get(i), BasicFileAttributes.class);
-                        java.lang.String k = att.fileKey().toString();
-                        int key = Integer.parseInt(k.substring(k.indexOf("ino=") + 4, k.lastIndexOf(")")));
-                        Node n = child(key);
+                        //BasicFileAttributes att = Files.readAttributes(l.get(i), BasicFileAttributes.class);
+                        //java.lang.String k = att.fileKey().toString();
+                        //int key = Integer.parseInt(k.substring(k.indexOf("ino=") + 4, k.lastIndexOf(")")));
+                       // Node n = child(key);
+                        Node n=child(l.get(i).toString());
                         if (n == null) {//le fichier ajout
-                            n = (Files.isDirectory(l.get(i)) ? new Dir(this, l.get(i).toString(), base) :
+                            n = (Files.isDirectory(l.get(i)) ? new Dir(this, l.get(i).toString(), base ,true) :
                                     new File(this, l.get(i).toString(), getBase()));
                             addchild(n);
+                            n.computeDirty();
                             n.notif(new BaseAction(n.getPathStr().substring(getBase().length()), "ADD"));
                         }
                     }

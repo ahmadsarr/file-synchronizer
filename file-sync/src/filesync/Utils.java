@@ -5,7 +5,10 @@ import filesync.action.RenameAction;
 import filesync.filesystem.*;
 import filesync.filesystem.Node;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -73,11 +76,19 @@ public final class Utils {
                 if(!Files.exists(p))
                 {
                     if(Files.isDirectory(p) || p.toString().indexOf(".")<0) {
-                        localfs.createDirectory(p);
+                      //  localfs.createDirectory(p);
+                        p.toFile().mkdirs();
                     } else{
-                        System.out.println(p.toString());
+
                         Files.createFile(p);
-                        localfs.fileCopy(paths.get(i).toFile(),p.toFile());
+                        /*BufferedReader reader = new BufferedReader(new FileReader((source)));
+                        PrintWriter writer = new PrintWriter(path.toFile());
+                        String line;
+                        while ((line = reader.readLine()) != null)
+                            writer.println(line);
+                        reader.close();
+                        writer.close();*/
+
                     }
                 }
 
@@ -108,6 +119,8 @@ public final class Utils {
                 break;
             case "ADD":
                 dst.createFile(relativepath);
+                if(Files.exists(p1)&& !Files.isDirectory(p1))
+                    dst.replace(p1.toString(),dst,relativepath);
                 break;
 
         }

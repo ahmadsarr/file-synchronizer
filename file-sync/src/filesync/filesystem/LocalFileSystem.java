@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -46,6 +47,8 @@ public class LocalFileSystem implements FileSystem{
     public List<String> getChildren(String path) {
 
         Path p1= Paths.get(basePath+path);
+        if(!Files.exists(p1))
+            return new ArrayList<>();
         try {
 
            return Files.walk(p1,1).map(p -> p.toString().substring(getBase().length())).skip(1).collect(Collectors.toList());
@@ -76,15 +79,28 @@ public class LocalFileSystem implements FileSystem{
     }
 
     @Override
-    public File createDirectory(Path path) {
-        path.toFile().mkdirs();
+    public File createDirectory(String path) {
+        System.out.println("create dir:"+path);
+        String file=path.substring(path.lastIndexOf("/")+1);
+        Node node=root.find(path.substring(0,path.length()-file.length()-1));
+            try {
+                node.createFile(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         return null;
     }
     @Override
     public void fileCopy(File input, File output) throws Exception {
-        output.mkdirs();
-        if(!output.exists())
-            Files.copy(input.toPath(),output.toPath());
+        Path path=output.toPath();
+        String file=path.getFileName().toString();
+        Node node=root.find(path.toString().substring(0,path.toString().length()-file.length()-1));
+        System.out.println("create dir:"+path);
+        try {
+            node.replace(output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -133,11 +149,10 @@ public class LocalFileSystem implements FileSystem{
     }
 
     @Override
-    public void createFile(String p) {
-        System.out.println("createFile:"+p);
-        Path path=Paths.get(p);
-        String file=path.getFileName().toString();
-        Node node=root.find(path.toString().substring(0,p.length()-file.length()-1));
+    public void createFile(String path) {
+        System.out.println("create file:"+path);
+        String file=path.substring(path.lastIndexOf("/")+1);
+        Node node=root.find(path.substring(0,path.length()-file.length()-1));
         try {
             node.createFile(file);
         } catch (IOException e) {

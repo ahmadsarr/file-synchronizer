@@ -1,5 +1,10 @@
 package filesync.filesystem;
 
+import filesync.action.BaseAction;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -12,7 +17,25 @@ public class Dir extends Node {
     public Dir(Node parent, java.lang.String name, java.lang.String base) {
         super(parent,name,base);
         children=new ArrayList<>();
-
+    }
+    public Dir(Node parent, java.lang.String name, java.lang.String base,boolean dirty){
+        super(parent,name,base);
+        children=new ArrayList<>();
+        try {
+            List<Path> l = Files.walk(getPath(), 1).collect(Collectors.toList());
+            for (int i = 1; i < l.size(); i++) {
+                //BasicFileAttributes att = Files.readAttributes(l.get(i), BasicFileAttributes.class);
+                //java.lang.String k = att.fileKey().toString();
+                //int key = Integer.parseInt(k.substring(k.indexOf("ino=") + 4, k.lastIndexOf(")")));
+                // Node n = child(key);
+                  Node  n = (Files.isDirectory(l.get(i)) ? new Dir(this, l.get(i).toString(), base,true) :
+                            new File(this, l.get(i).toString(), getBase()));
+                    notif(new BaseAction(n.getPathStr().substring(getBase().length()), "ADD"));
+                    addchild(n);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

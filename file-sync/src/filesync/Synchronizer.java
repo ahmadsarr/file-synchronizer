@@ -7,7 +7,6 @@ import filesync.filesystem.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,10 +52,9 @@ public class Synchronizer implements Runnable {
     }
 
     public void reconcile(List<BaseAction> dirtyA, List<BaseAction> dirtyB, String relativepath) {
-
+        System.out.println(relativepath);
         if (dirtyA.isEmpty() && dirtyB.isEmpty())
             return;
-        System.out.println(relativepath);
         List<BaseAction> a = dirtyA.stream().filter(baseAction -> baseAction.getFilename().equals(relativepath)).collect(Collectors.toList());
         List<BaseAction> b = dirtyB.stream().filter(baseAction -> baseAction.getFilename().equals(relativepath)).collect(Collectors.toList());
         if (a.isEmpty() && b.isEmpty()) {
@@ -64,56 +62,56 @@ public class Synchronizer implements Runnable {
         }
         Path p1 = Paths.get(this.fsA.getBase() + relativepath);
         Path p2 = Paths.get(this.fsB.getBase() + relativepath);
-        if (Files.isDirectory(p1) && Files.isDirectory(p2)) {
-            Set<String> childrenAB = new HashSet<>();
-            List<String> enf = fsA.getChildren(relativepath);
-            if (enf != null && !enf.isEmpty())
-                childrenAB.addAll(enf);
-            enf = fsB.getChildren(relativepath);
-            if (enf != null && !enf.isEmpty())
-                childrenAB.addAll(enf);
-            for (String e : childrenAB) {
-                //  System.out.println("reconcile->fro:"+e);
-                reconcile(dirtyA, dirtyB, e);
-            }
-
-        } else if (!a.isEmpty() && !b.isEmpty()) {
-            System.out.println("Collision :"+relativepath);
-            boolean renameA=false;
-        for(BaseAction ba:a)
-        {
-            if(ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath))
+        if (Files.isDirectory(p1) || Files.isDirectory(p2)) {
+           List<BaseAction>l= a.stream().filter(baseAction -> baseAction.getAction().equals("DELETE")).collect(Collectors.toList());
+          List<BaseAction>l2=  b.stream().filter(baseAction -> baseAction.getAction().equals("DELETE")).collect(Collectors.toList());//.forEach(baseAction -> Utils.update(baseAction, fsB, fsA, relativepath));
+            if(!l.isEmpty()||!l2.isEmpty())
             {
-                Utils.update(ba,fsA,fsB,relativepath);
+                System.out.println("collision:");
+                System.out.println(""+this.fsA.getBase()+"");
+                l.stream().forEach(baseAction -> System.out.println(baseAction));
+                l.stream().forEach(baseAction -> Utils.update(baseAction, fsA, fsB, relativepath));
+                System.out.println(""+this.fsB.getBase()+"");
+                l2.stream().forEach(baseAction -> System.out.println(baseAction));
+                l2.stream().forEach(baseAction -> Utils.update(baseAction, fsB, fsA, relativepath));
                 return;
             }
-            if(ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath))
-            {
-                System.out.println("undo Rename : "+ba.getFilename());
-                Utils.undo(ba,fsA);
-            }
+            a.stream().forEach(baseAction -> Utils.update(baseAction, fsA, fsB, relativepath));
+            b.stream().forEach(baseAction -> Utils.update(baseAction, fsB, fsA, relativepath));
+            List<String> enf = fsA.getChildren(relativepath);
+            if (enf != null && !enf.isEmpty())
+                enf.stream().forEach(e ->{reconcile(dirtyA,dirtyB,e);});
+            enf = fsB.getChildren(relativepath);
+            if (enf != null && !enf.isEmpty())
+                enf.stream().forEach(e ->{reconcile(dirtyA,dirtyB,e);});
 
-        }
-            for(BaseAction ba:b)
-            {
-                if(ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath))
-                {
-                    Utils.update(ba,fsB,fsA,relativepath);
-                    return;
+
+        } else if (!a.isEmpty() && !b.isEmpty()) {
+            System.out.println("Collision :::" + relativepath);
+            for (BaseAction ba : a) {
+                if (ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath)) {
+                    Utils.update(ba, fsA, fsB, relativepath);
                 }
-                if(ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath))
-                {
-                    System.out.println("undo Rename : "+ba.getFilename());
-                    Utils.undo(ba,fsB);
+                if (ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath)) {
+                    System.out.println("undo Rename : " + ba.getFilename());
+                    Utils.undo(ba, fsA);
+                }
+
+            }
+            for (BaseAction ba : b) {
+                if (ba.getAction().equals("DELETED") && ba.getFilename().equals(relativepath)) {
+                    Utils.update(ba, fsB, fsA, relativepath);
+                }
+                if (ba.getAction().equals("RENAME") && ba.getFilename().equals(relativepath)) {
+                    System.out.println("undo Rename : " + ba.getFilename());
+                    Utils.undo(ba, fsB);
                 }
             }
-
         } else if (!a.isEmpty()) {
-                Utils.update(a.get(0),fsA,fsB,relativepath);
+            Utils.update(a.get(0), fsA, fsB, relativepath);
 
-        }else{
-            System.out.println("update A");
-            Utils.update(b.get(0),fsB,fsA,relativepath);
+        } else {
+            Utils.update(b.get(0), fsB, fsA, relativepath);
         }
 
     }

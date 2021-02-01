@@ -15,7 +15,9 @@ public class Main {
        // new Thread(synchronizer).start();
         Scanner sc=new Scanner(System.in);
         while (true){
+            System.out.println("Entrez une touche ...");
             sc.nextLine();
+            System.out.println("Reconciliation");
             synchronizer.reconcile(lf.computerDirty(), cplf.computerDirty(), "/dir1");
         }
 
